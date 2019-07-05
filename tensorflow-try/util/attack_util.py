@@ -1,23 +1,23 @@
 import copy
-from util.model_util import load_model, load_selection, load_shadow_arrays
-from util.fashion_mnist_util import show_images, predict_image_label, image_label_prob
-from util.ssim import SSIM
-import numpy as np
 import time
+import numpy as np
 
-_model = load_model()
-_shadows = load_shadow_arrays()
-_certain_prob = 0.8
-_certain_ssim = 0.8
-_create_time = 6
-_show_attack_detail = True
+from util.model_util import load_model, load_shadow_arrays
+from util.fashion_mnist_util import show_images, predict_image_label, image_label_prob
+from util.ssim import cal_ssim
+
+__model = load_model()
+__shadows = load_shadow_arrays()
+__certain_prob = 0.9
+__certain_ssim = 0.9
+__create_time = 300
+__show_attack_detail = False
 
 
 def create_attack_images(images):
     """
     创建对抗样本
     :param images: 一批照片 类型为 numpy.ndarray
-    :param shape: 这批图片的 shape 类型为 tuple
     :return: Generate_images: 同输入图片相同的 shape 的修改后的批量图片数据
     """
     imgs = copy.deepcopy(images)
@@ -26,13 +26,13 @@ def create_attack_images(images):
     for i in np.arange(img_count):
         print('[INFO] creating attack... [', i + 1, '/', img_count, ']')
         img = images[i]
-        (label, probs) = predict_image_label(_model, images[i])
+        (label, probs) = predict_image_label(__model, images[i])
 
         max_ssim = -1
         for shadow_label in np.arange(10):
             if shadow_label == 5 or shadow_label == label:
                 continue
-            (new_attack_img, new_ssim) = create_attack_image(img, shadow_label)
+            (new_attack_img, new_ssim) = __create_attack_image(img, shadow_label)
             if new_ssim > max_ssim:
                 imgs[i] = new_attack_img
                 max_ssim = new_ssim
@@ -44,18 +44,25 @@ def create_attack_images(images):
 
 
 def __show_attack_effect(origin, attack, img_count):
+    """
+    展示对抗样本效果
+    :param origin: 原样本
+    :param attack: 对抗样本
+    :param img_count: 样本数
+    :return:
+    """
     suc_count = 0
     ssim_total = 0
     for i in np.arange(len(origin)):
-        ssim = SSIM(origin[i], attack[i])
+        ssim = cal_ssim(origin[i], attack[i])
         ssim_total += ssim
 
-        (ori_pred, ori_probs) = predict_image_label(_model, origin[i])
-        (att_pred, att_probs) = predict_image_label(_model, attack[i])
+        (ori_pred, ori_probs) = predict_image_label(__model, origin[i])
+        (att_pred, att_probs) = predict_image_label(__model, attack[i])
         if ori_pred != att_pred:
             suc_count += 1
 
-        if _show_attack_detail:
+        if __show_attack_detail:
             print('----- \n', i, ' [ssim] ', ssim)
             print('[prob]')
             print(ori_pred, ' ', ori_probs[ori_pred], ' ', ori_probs[att_pred])
@@ -64,7 +71,7 @@ def __show_attack_effect(origin, attack, img_count):
     print('[INFO] Result: success ', suc_count , '/', img_count)
     print('[INFO] average ssim ', ssim_total / img_count)
 
-    if _show_attack_detail:
+    if __show_attack_detail:
         shows = np.zeros(tuple((len(attack) * 2, 28, 28, 1)), dtype=float)
         for i in np.arange(len(attack)):
             shows[i * 2] += attack[i]
@@ -72,24 +79,30 @@ def __show_attack_effect(origin, attack, img_count):
         show_images(shows)
 
 
-def create_attack_image(image, shadow_label):
-    shadow = copy.deepcopy(_shadows[shadow_label])
+def __create_attack_image(image, shadow_label):
+    """
+    创建对抗样本
+    :param image: 图片
+    :param shadow_label: 遮罩标签
+    :return: 对抗样本，ssim值
+    """
+    shadow = copy.deepcopy(__shadows[shadow_label])
     img = copy.deepcopy(image)
 
     shadow_percent = 1
     img_percent = 0
 
     new_img = combine_img(img * img_percent, shadow * shadow_percent)
-    ssim = SSIM(image, new_img)
-    prob = image_label_prob(_model, new_img, shadow_label)
+    ssim = cal_ssim(image, new_img)
+    prob = image_label_prob(__model, new_img, shadow_label)
 
     start = time.time()
 
     check_ssim = True
 
     while True:
-        if prob > _certain_prob:
-            if (not check_ssim) or ssim > _certain_ssim:
+        if prob > __certain_prob:
+            if (not check_ssim) or ssim > __certain_ssim:
                 break
             else:
                 shadow_percent *= 0.8
@@ -102,12 +115,12 @@ def create_attack_image(image, shadow_label):
                 shadow_percent = 1
             img_percent *= 0.9
 
-        if check_ssim and time.time() - start > _create_time:
+        if check_ssim and time.time() - start > __create_time:
             check_ssim = False
 
         new_img1 = combine_img(img * img_percent, shadow * shadow_percent)
-        ssim1 = SSIM(image, new_img1)
-        prob1 = image_label_prob(_model, new_img1, shadow_label)
+        ssim1 = cal_ssim(image, new_img1)
+        prob1 = image_label_prob(__model, new_img1, shadow_label)
         if ssim1 > ssim or prob1 > prob:
             ssim = ssim1
             prob = prob

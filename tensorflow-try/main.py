@@ -13,5 +13,10 @@ def aiTest(images, shape):
 
 
 def test_aiTest():
+    """
+    测试
+    """
     (test_data, shape) = create_test_data()
     aiTest(test_data, shape)
+
+test_aiTest()

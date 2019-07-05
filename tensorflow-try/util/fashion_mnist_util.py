@@ -1,47 +1,25 @@
-import matplotlib.pyplot as plt
-import numpy as np
 from imutils import build_montages
-from sklearn.metrics import classification_report
 from keras.utils import np_utils
 from keras.datasets import fashion_mnist
+import numpy as np
 import cv2
 import math
 
-_history_plot = 'plot.png'
+__history_plot = 'plot.png'
 
 # initialize the label names
-_labelNames = ["top", "trouser", "pullover", "dress", "coat",
+__labelNames = ["top", "trouser", "pullover", "dress", "coat",
               "sandal", "shirt", "sneaker", "bag", "ankle boot"]
 
-_random_test_count = 16
-
-
-def print_prediction(model, images, labels):
-    # make predictions on the fashion_model set
-    preds = model.predict(images)
-
-    # show a nicely formatted classification report
-    print("[INFO] evaluating network...")
-    print(classification_report(labels.argmax(axis=1), preds.argmax(axis=1),
-                                target_names=_labelNames))
-
-
-def plot_model_history(N, H):
-    # plot the training loss and accuracy
-    plt.style.use("ggplot")
-    plt.figure()
-    plt.plot(np.arange(0, N), H.history["loss"], label="train_loss")
-    plt.plot(np.arange(0, N), H.history["val_loss"], label="val_loss")
-    plt.plot(np.arange(0, N), H.history["acc"], label="train_acc")
-    plt.plot(np.arange(0, N), H.history["val_acc"], label="val_acc")
-    plt.title("Training Loss and Accuracy on Dataset")
-    plt.xlabel("Epoch #")
-    plt.ylabel("Loss/Accuracy")
-    plt.legend(loc="lower left")
-    plt.savefig(_history_plot)
+__random_test_count = 16
 
 
 def get_row_col(count):
+    """
+    获取展示的行和列
+    :param count: 图片总数
+    :return: 行，列
+    """
     row = math.floor(math.sqrt(count) / 2) * 2
     if row > 6:
         row = 6
@@ -50,16 +28,22 @@ def get_row_col(count):
 
 
 def images_random_test(model, images, labels):
+    """
+    随机测试模型
+    :param model: 模型
+    :param images: 测试集
+    :param labels: 测试标签集
+    """
     # initialize our list of output images
     output_images = []
 
     # randomly select a few testing fashion items
-    for i in np.random.choice(np.arange(0, len(labels)), size=(_random_test_count,)):
+    for i in np.random.choice(np.arange(0, len(labels)), size=(__random_test_count,)):
         # classify the clothing
         image = images[np.newaxis, i]
         probs = model.predict(image)
         prediction = probs.argmax(axis=1)
-        label = _labelNames[prediction[0]]
+        label = __labelNames[prediction[0]]
 
         # # "channels_first" ordering
         # image = (images[i][0] * 255).astype("uint8")
@@ -95,16 +79,33 @@ def images_random_test(model, images, labels):
 
 
 def predict_image_label(model, img):
+    """
+    预测图片标签
+    :param model: 模型
+    :param img: 图片
+    :return: 预测标签，概率分布
+    """
     probs = model.predict(np.expand_dims(img, axis=0))
     prediction = np.argmax(probs)
     return prediction, probs[0]
 
 
 def image_label_prob(model, img, label):
+    """
+    获取特定标签的概率
+    :param model: 模型
+    :param img: 图片
+    :param label: 标签
+    :return:
+    """
     return model.predict(np.expand_dims(img, axis=0))[0][label]
 
 
 def show_images(images):
+    """
+    显示图片
+    :param images: 图片
+    """
     # initialize our list of output images
     output_images = []
 
@@ -132,14 +133,18 @@ def show_images(images):
 
 
 def create_test_data():
+    """
+    创建测试数据
+    :return: 测试数据
+    """
     ((train_images, train_labels), (test_images, test_labels)) = load_data()
 
-    shape = tuple((_random_test_count, 28, 28, 1))
+    shape = tuple((__random_test_count, 28, 28, 1))
     images = np.zeros(shape, dtype=np.float)
 
     # randomly select a few testing fashion items
     idx = 0
-    for i in np.random.choice(np.arange(0, len(train_images)), size=(_random_test_count,)):
+    for i in np.random.choice(np.arange(0, len(train_images)), size=(__random_test_count,)):
         image = train_images[i]
         images[idx] += image
         idx += 1
@@ -148,6 +153,10 @@ def create_test_data():
 
 
 def load_data():
+    """
+    加载数据集
+    :return: 数据集
+    """
     # grab the Fashion MNIST dataset (if this is your first time running
     # this the dataset will be automatically downloaded)
     print("[INFO] loading Fashion MNIST...")
