@@ -5,13 +5,11 @@ import numpy as np
 # import cv2
 import math
 
-__history_plot = 'plot.png'
-
 # initialize the label names
 __labelNames = ["top", "trouser", "pullover", "dress", "coat",
               "sandal", "shirt", "sneaker", "bag", "ankle boot"]
 
-__random_test_count = 4
+__random_test_count = 16
 
 
 def get_row_col(count):

@@ -45,3 +45,7 @@
   * __show_attack_detail 统一输出 ssim 值 和 概率情况
   * __show_origin_attack_images 完成后可视化展示原图片和对抗图片
      **（数据量大时请不要开启）**
+* 本地测试时的图片数量使用 model_util 中的 __random_test_count 变量控制
+* 未作 channels_first channels_last 处理
+* SSIM 脚本使用网络版本再修改
+* 模型训练参考网页 <https://www.pyimagesearch.com/2019/02/11/fashion-mnist-with-keras-and-deep-learning/>

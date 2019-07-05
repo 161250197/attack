@@ -8,6 +8,7 @@ from util.ssim import cal_ssim
 
 __model = load_model()
 __shadows = load_shadow_arrays()
+
 __certain_prob = 0.6
 __certain_ssim = 0.9
 __secondary_ssim = 0.6
