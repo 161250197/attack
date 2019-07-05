@@ -1,17 +1,13 @@
-import matplotlib
 from keras.optimizers import SGD
 import numpy as np
 
 from util.fashion_model.pyimagesearch.minivggnet import MiniVGGNet
-from util.fashion_mnist_util import load_data, images_random_test
-from util.model_util import save_model, load_model, save_shadow_arrays, load_shadow_arrays
-
-# set the matplotlib backend so figures can be saved in the background
-matplotlib.use("Agg")
+from util.model_util import load_data, images_random_test
+from util.local_util import save_model, load_model, save_shadow_arrays, load_shadow_arrays
 
 # initialize the number of epochs to train for, base learning rate,
 # and batch size
-__NUM_EPOCHS = 25
+__NUM_EPOCHS = 2
 __INIT_LR = 1e-2
 __BS = 32
 

@@ -1,5 +1,5 @@
 from util.attack_util import create_attack_images
-from util.fashion_mnist_util import create_test_data
+from util.model_util import create_test_data
 
 
 def aiTest(images, shape):
@@ -11,8 +11,8 @@ def aiTest(images, shape):
     """
     imgs = images / 255
     attack_images = create_attack_images(imgs)
-
-    return attack_images * 255
+    result = attack_images * 255
+    return result
 
 
 def test_aiTest():
@@ -22,4 +22,4 @@ def test_aiTest():
     (test_data, shape) = create_test_data()
     aiTest(test_data * 255, shape)
 
-test_aiTest()
+# test_aiTest()
