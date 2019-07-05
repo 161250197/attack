@@ -2,7 +2,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 from imutils import build_montages
 from sklearn.metrics import classification_report
+from keras.utils import np_utils
+from keras.datasets import fashion_mnist
 import cv2
+import math
 
 _history_plot = 'plot.png'
 
@@ -10,9 +13,11 @@ _history_plot = 'plot.png'
 _labelNames = ["top", "trouser", "pullover", "dress", "coat",
               "sandal", "shirt", "sneaker", "bag", "ankle boot"]
 
+_random_test_count = 16
+
 
 def print_prediction(model, images, labels):
-    # make predictions on the test set
+    # make predictions on the fashion_model set
     preds = model.predict(images)
 
     # show a nicely formatted classification report
@@ -36,15 +41,23 @@ def plot_model_history(N, H):
     plt.savefig(_history_plot)
 
 
+def get_row_col(count):
+    row = math.floor(math.sqrt(count) / 2) * 2
+    if row > 6:
+        row = 6
+    col = math.ceil(count / row)
+    return row, col
+
+
 def images_random_test(model, images, labels):
     # initialize our list of output images
     output_images = []
 
     # randomly select a few testing fashion items
-    for i in np.random.choice(np.arange(0, len(labels)), size=(16,)):
+    for i in np.random.choice(np.arange(0, len(labels)), size=(_random_test_count,)):
         # classify the clothing
         image = images[np.newaxis, i]
-        probs = model.predict(images[np.newaxis, i])
+        probs = model.predict(image)
         prediction = probs.argmax(axis=1)
         label = _labelNames[prediction[0]]
 
@@ -73,11 +86,22 @@ def images_random_test(model, images, labels):
         output_images.append(image)
 
     # construct the montage for the images
-    montage = build_montages(output_images, (96, 96), (4, 4))[0]
+    (row, col) = get_row_col(len(images))
+    montage = build_montages(output_images, (96, 96), (col, row))[0]
 
     # show the output montage
     cv2.imshow("Fashion MNIST", montage)
     cv2.waitKey(0)
+
+
+def predict_image_label(model, img):
+    probs = model.predict(np.expand_dims(img, axis=0))
+    prediction = np.argmax(probs)
+    return prediction, probs[0]
+
+
+def image_label_prob(model, img, label):
+    return model.predict(np.expand_dims(img, axis=0))[0][label]
 
 
 def show_images(images):
@@ -99,8 +123,50 @@ def show_images(images):
         output_images.append(image)
 
     # construct the montage for the images
-    montage = build_montages(output_images, (96, 96), (4, 4))[0]
+    (row, col) = get_row_col(len(images))
+    montage = build_montages(output_images, (96, 96), (col, row))[0]
 
     # show the output montage
     cv2.imshow("Fashion MNIST", montage)
     cv2.waitKey(0)
+
+
+def create_test_data():
+    ((train_images, train_labels), (test_images, test_labels)) = load_data()
+
+    shape = tuple((_random_test_count, 28, 28, 1))
+    images = np.zeros(shape, dtype=np.float)
+
+    # randomly select a few testing fashion items
+    idx = 0
+    for i in np.random.choice(np.arange(0, len(train_images)), size=(_random_test_count,)):
+        image = train_images[i]
+        images[idx] += image
+        idx += 1
+
+    return images, shape
+
+
+def load_data():
+    # grab the Fashion MNIST dataset (if this is your first time running
+    # this the dataset will be automatically downloaded)
+    print("[INFO] loading Fashion MNIST...")
+    ((train_images, train_labels), (test_images, test_labels)) = fashion_mnist.load_data()
+
+    # # "channels_first" ordering
+    # train_images = train_images.reshape((train_images.shape[0], 1, 28, 28))
+    # test_images = test_images.reshape((test_images.shape[0], 1, 28, 28))
+
+    # "channels_last" ordering
+    train_images = train_images.reshape((train_images.shape[0], 28, 28, 1))
+    test_images = test_images.reshape((test_images.shape[0], 28, 28, 1))
+
+    # scale data to the range of [0, 1]
+    train_images = train_images.astype("float32") / 255.0
+    test_images = test_images.astype("float32") / 255.0
+
+    # one-hot encode the training and testing labels
+    train_labels = np_utils.to_categorical(train_labels, 10)
+    test_labels = np_utils.to_categorical(test_labels, 10)
+
+    return (train_images, train_labels), (test_images, test_labels)

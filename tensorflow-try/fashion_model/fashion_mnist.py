@@ -1,15 +1,10 @@
 # import the necessary packages TODO 移除 sklearn
 import matplotlib
-from test.pyimagesearch.minivggnet import MiniVGGNet
-from util.fashion_mnist_util import plot_model_history, images_random_test, print_prediction, show_images
-from util.model_util import save_model, load_model, save_shadow_arrays, load_shadow_arrays, save_prob
+from fashion_model.pyimagesearch.minivggnet import MiniVGGNet
+from util.fashion_mnist_util import plot_model_history, images_random_test, print_prediction, load_data
+from util.model_util import save_model, load_model, save_shadow_arrays, load_shadow_arrays, save_prob, load_prob, load_selection, save_selection
 from keras.optimizers import SGD
-from keras.datasets import fashion_mnist
-from keras.utils import np_utils
 import numpy as np
-
-# TODO
-from ssim import SSIM
 
 # set the matplotlib backend so figures can be saved in the background
 matplotlib.use("Agg")
@@ -26,7 +21,6 @@ def init_model():
     初始化
     训练并保存模型
     """
-
     # load data
     ((train_images, train_labels), (test_images, test_labels)) = load_data()
 
@@ -46,7 +40,6 @@ def test_model():
     """
     加载本地模型并测试
     """
-
     model = load_model()
 
     show_model_effect(model)
@@ -57,7 +50,6 @@ def create_shadow():
     创建对抗阴影
     :return:
     """
-
     ((train_images, train_labels), (test_images, test_labels)) = load_data()
 
     shadow_array = np.zeros(tuple((10, 28, 28, 1)), dtype=np.float)
@@ -82,7 +74,9 @@ def test_shadow():
     model = load_model()
 
     for i in np.arange(10):
-        print(model.predict(shadow[np.newaxis, i]).argsort())
+        prob = model.predict(shadow[np.newaxis, i])
+        pred = prob.argsort()
+        print(pred)
 
 
 def create_prob():
@@ -104,29 +98,18 @@ def create_prob():
     save_prob(prob_array)
 
 
-def load_data():
-    # grab the Fashion MNIST dataset (if this is your first time running
-    # this the dataset will be automatically downloaded)
-    print("[INFO] loading Fashion MNIST...")
-    ((train_images, train_labels), (test_images, test_labels)) = fashion_mnist.load_data()
+def create_selection():
+    """
+    加载判定矩阵，生成对抗样本选择
+    :return:
+    """
+    prob = load_prob()
 
-    # # "channels_first" ordering
-    # train_images = train_images.reshape((train_images.shape[0], 1, 28, 28))
-    # test_images = test_images.reshape((test_images.shape[0], 1, 28, 28))
+    transpose_prop = np.transpose(prob)
 
-    # "channels_last" ordering
-    train_images = train_images.reshape((train_images.shape[0], 28, 28, 1))
-    test_images = test_images.reshape((test_images.shape[0], 28, 28, 1))
+    selection = np.where(transpose_prop == 0)
 
-    # scale data to the range of [0, 1]
-    train_images = train_images.astype("float32") / 255.0
-    test_images = test_images.astype("float32") / 255.0
-
-    # one-hot encode the training and testing labels
-    train_labels = np_utils.to_categorical(train_labels, 10)
-    test_labels = np_utils.to_categorical(test_labels, 10)
-
-    return (train_images, train_labels), (test_images, test_labels)
+    save_selection(selection)
 
 
 def train_model(train_images, train_labels, test_images, test_labels):
@@ -151,7 +134,7 @@ def show_model_effect(model):
     # load data
     ((train_images, train_labels), (test_images, test_labels)) = load_data()
 
-    # # make predictions on the test set
+    # # make predictions on the fashion_model set
     print_prediction(model, images=test_images, labels=test_labels)
 
     # initialize our list of output images

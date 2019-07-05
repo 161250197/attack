@@ -4,6 +4,7 @@ import numpy as np
 _model = 'model.h5'
 _shadow_array = 'shadow.txt'
 _prob_array = 'prob.txt'
+_selection = 'selection.txt'
 
 
 def load_model():
@@ -34,3 +35,13 @@ def load_prob():
 def save_prob(arr):
     print("[INFO] saving Prob...")
     np.savetxt(_prob_array, arr.flatten())
+
+
+def load_selection():
+    print("[INFO] loading Selection...")
+    return np.loadtxt(_selection)
+
+
+def save_selection(arr):
+    print("[INFO] saving Selection...")
+    np.savetxt(_selection, arr)

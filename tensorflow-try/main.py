@@ -1,17 +1,17 @@
-import attack
-from tensorflow import keras
+from util.attack_util import create_attack_images
+from util.fashion_mnist_util import create_test_data
 
-import helper
 
-fashion_mnist = keras.datasets.fashion_mnist
-(train_images, train_labels), (test_images, test_labels) = fashion_mnist.load_data()
-start = 90
-images = attack.attack(test_images[start:start + 9])[0]
-for i in range(len(images)):
-    print(
-        helper.display_label(attack.get_label(images[i])),
-        helper.display_label(attack.get_label(test_images[i + start])),
-        helper.display_label(test_labels[i + start])
-    )
+def aiTest(images, shape):
+    """
+    后台测试只调用 aiTest 方法
+    :param images: 一批照片 类型为 numpy.ndarray
+    :param shape: 这批图片的 shape 类型为 tuple
+    :return: Generate_images: 同输入图片相同的 shape 的修改后的批量图片数据
+    """
+    return create_attack_images(images)
 
-helper.plot_images(images)
+
+def test_aiTest():
+    (test_data, shape) = create_test_data()
+    aiTest(test_data, shape)
