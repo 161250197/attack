@@ -1,6 +1,6 @@
-# from imutils import build_montages
 from keras.utils import np_utils
 from keras.datasets import fashion_mnist
+# from imutils import build_montages
 import numpy as np
 # import cv2
 import math

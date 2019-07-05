@@ -10,12 +10,11 @@ __model = load_model()
 __shadows = load_shadow_arrays()
 
 __certain_prob = 0.6
-__certain_ssim = 0.9
+__certain_ssim = 0.8
 __secondary_ssim = 0.6
 __create_time = 1
 
-__show_loading = True
-__show_attack_detail = False
+__show_attack_detail = True
 __show_origin_attack_images = False
 
 
@@ -27,6 +26,8 @@ def create_attack_images(images):
     """
     imgs = copy.deepcopy(images)
 
+    start_time = time.time()
+
     img_count = len(imgs)
     for index in np.arange(img_count):
         print('[INFO] creating attack... [', index + 1, '/', img_count, ']')
@@ -34,7 +35,21 @@ def create_attack_images(images):
         (label, probs) = predict_image_label(__model, img)
 
         max_ssim = -1
-        for shadow_label in np.arange(10):
+
+        target_shadows = [
+            [1,3,4],
+            [0,3,4],
+            [0,3,4],
+            [1,2,4],
+            [0,2,3],
+            [7,8,9],
+            [0,2,3],
+            [8,9],
+            [2,4,9],
+            [2,8]
+        ]
+
+        for shadow_label in target_shadows[label]:
             if shadow_label == 5 or shadow_label == label:
                 continue
             (new_attack_img, new_ssim) = __create_attack_image(img, shadow_label)
@@ -42,16 +57,10 @@ def create_attack_images(images):
                 imgs[index] = new_attack_img
                 max_ssim = new_ssim
 
-            if __show_loading:
-                loading = ''
-                for i in np.arange(shadow_label + 1):
-                    loading += '+'
-                for i in np.arange(9 - shadow_label):
-                    loading += '-'
-                print(loading)
-
     # 展示效果
     __show_attack_effect(images, imgs, img_count)
+
+    print('[INFO] use time(s) ', time.time() - start_time)
 
     return imgs
 
@@ -66,7 +75,7 @@ def __create_attack_image(image, shadow_label):
     shadow = copy.deepcopy(__shadows[shadow_label])
     img = copy.deepcopy(image)
 
-    shadow_percent = 1
+    shadow_percent = 0.5
     img_percent = 0.5
 
     new_img = combine_img(img * img_percent, shadow * shadow_percent)

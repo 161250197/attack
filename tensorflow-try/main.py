@@ -22,4 +22,4 @@ def test_aiTest():
     (test_data, shape) = create_test_data()
     aiTest(test_data * 255, shape)
 
-# test_aiTest()
+test_aiTest()

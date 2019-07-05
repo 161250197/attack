@@ -2,7 +2,7 @@ from keras.optimizers import SGD
 import numpy as np
 
 from util.fashion_model.pyimagesearch.minivggnet import MiniVGGNet
-from util.model_util import load_data, images_random_test
+from util.model_util import load_data, images_random_test, show_images
 from util.local_util import save_model, load_model, save_shadow_arrays, load_shadow_arrays
 
 # initialize the number of epochs to train for, base learning rate,
@@ -75,6 +75,8 @@ def test_shadow():
         prob = model.predict(shadow[np.newaxis, i])
         pred = prob.argsort()
         print(pred)
+
+    show_images(shadow)
 
 
 def train_model(train_images, train_labels, test_images, test_labels):
