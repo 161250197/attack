@@ -9,7 +9,10 @@ def aiTest(images, shape):
     :param shape: 这批图片的 shape 类型为 tuple
     :return: Generate_images: 同输入图片相同的 shape 的修改后的批量图片数据
     """
-    return create_attack_images(images)
+    imgs = images / 255
+    attack_images = create_attack_images(imgs)
+
+    return attack_images * 255
 
 
 def test_aiTest():
@@ -17,6 +20,6 @@ def test_aiTest():
     测试
     """
     (test_data, shape) = create_test_data()
-    aiTest(test_data, shape)
+    aiTest(test_data * 255, shape)
 
 test_aiTest()

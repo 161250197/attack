@@ -8,9 +8,9 @@ from util.ssim import cal_ssim
 
 __model = load_model()
 __shadows = load_shadow_arrays()
-__certain_prob = 0.9
+__certain_prob = 0.8
 __certain_ssim = 0.9
-__create_time = 300
+__create_time = 2
 __show_attack_detail = False
 
 
@@ -36,6 +36,13 @@ def create_attack_images(images):
             if new_ssim > max_ssim:
                 imgs[i] = new_attack_img
                 max_ssim = new_ssim
+
+            loading = ''
+            for i in np.arange(shadow_label + 1):
+                loading += '+'
+            for i in np.arange(9 - shadow_label):
+                loading += '-'
+            print(loading)
 
     # 展示效果
     __show_attack_effect(images, imgs, img_count)
@@ -118,15 +125,9 @@ def __create_attack_image(image, shadow_label):
         if check_ssim and time.time() - start > __create_time:
             check_ssim = False
 
-        new_img1 = combine_img(img * img_percent, shadow * shadow_percent)
-        ssim1 = cal_ssim(image, new_img1)
-        prob1 = image_label_prob(__model, new_img1, shadow_label)
-        if ssim1 > ssim or prob1 > prob:
-            ssim = ssim1
-            prob = prob
-            new_img = new_img1
-        else:
-            break
+        new_img = combine_img(img * img_percent, shadow * shadow_percent)
+        ssim = cal_ssim(image, new_img)
+        prob = image_label_prob(__model, new_img, shadow_label)
 
     return new_img, ssim
 
